@@ -1,0 +1,36 @@
+$margin: 0.5rem;
+
+.full-width {
+  width: 100%;
+}
+
+.login-card {
+  min-width: 12rem;
+  max-width: 24rem;
+  margin: calc($margin * 2) auto;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.col {
+  flex: 1;
+  margin-right: $margin;
+}
+
+.col:last-child {
+  margin-right: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: $margin;
+  margin-top: calc($margin * -1);
+}
+
+mat-card-content {
+  margin-top: $margin;
+}
