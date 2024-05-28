@@ -1,6 +1,4 @@
-﻿using JwtDemo.Core;
-using JwtDemo.Core.Auth;
-using JwtDemo.Core.Users;
+﻿using JwtDemo.Core.Auth;
 using JwtDemo.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +7,7 @@ namespace JwtDemo.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public sealed class AuthController(IAuthService authService) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
@@ -32,7 +30,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost]
-    [Route("token-refreshs")]
+    [Route("token-refreshes")]
     public async ValueTask<ActionResult<TokenResponse>> Refresh([FromBody] TokenRefreshRequest request)
     {
         var refreshResult = await _authService.AttemptTokenRefresh(request.Username, request.RefreshToken);
