@@ -186,6 +186,13 @@ public static class Setup
         
         static async ValueTask InsertDefaultProducts(DatabaseContext context)
         {
+            var existing = await context.Products.AnyAsync();
+            
+            if (existing)
+            {
+                return;
+            }
+            
             var products = new[]
             {
                 new Product { Name = "Rice", Price = 0.99M },
