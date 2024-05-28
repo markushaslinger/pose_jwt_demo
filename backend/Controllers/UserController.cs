@@ -12,6 +12,9 @@ public sealed class UserController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;
 
+    #region Insecure Demo Code - Ignore!
+
+    // !! This is obviously just a placeholder, don't let anonymous requests create new users !!
     [HttpPost]
     [AllowAnonymous]
     [Route("registrations")]
@@ -22,4 +25,7 @@ public sealed class UserController(IUserService userService) : ControllerBase
         return addNewResult.Match<IActionResult>(_ => Created(),
                                                  _ => BadRequest());
     }
+
+    #endregion
+
 }

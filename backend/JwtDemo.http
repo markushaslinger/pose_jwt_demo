@@ -1,6 +1,104 @@
-@JwtDemo_HostAddress = http://localhost:5106
+@BaseUrl = https://localhost:7029
 
-GET {{JwtDemo_HostAddress}}/weatherforecast/
-Accept: application/json
+### User Registration - just for demo purposes, don't do that for real!
+POST {{BaseUrl}}/api/users/registrations
+Content-Type: application/json
 
-###
+{
+  "Username": "User1",
+  "Password": "Password1",
+  "Role": "User"
+}
+
+### Admin Registration - just for demo purposes, don't do that for real!
+POST {{BaseUrl}}/api/users/registrations
+Content-Type: application/json
+
+{
+  "Username": "Admin1",
+  "Password": "Password1",
+  "Role": "Admin"
+}
+
+### Guest (no token) user tries getting product information - fails!
+GET {{BaseUrl}}/api/products/1234
+
+### Login User
+POST {{BaseUrl}}/api/auth/logins
+Content-Type: application/json
+
+{
+  "Username": "User1",
+  "Password": "Password1"
+}
+
+> {% 
+    const res = response.body;
+    client.global.set('userAccessToken', res.accessToken.token);
+    client.global.set('userRefreshToken', res.refreshToken.token);
+    client.log('User Access-Token: ' + client.global.get('userAccessToken'));
+    client.log('User Refresh-Token: ' + client.global.get('userRefreshToken'));
+%}
+
+### User tries getting product information - remember to send token!
+GET {{BaseUrl}}/api/products/1234
+Authorization: Bearer {{userAccessToken}}
+
+### User tried to update price - fails with 403 (without token we get 401)
+PATCH {{BaseUrl}}/api/products/1235/price
+Authorization: Bearer {{userAccessToken}}
+Content-Type: application/json
+
+{
+  "Price": 22
+}
+
+### User token refresh - we don't need to send a bearer token
+POST {{BaseUrl}}/api/auth/token-refreshes
+Content-Type: application/json
+
+{
+  "Username": "User1",
+  "RefreshToken": "{{userRefreshToken}}"
+}
+
+> {%
+    const res = response.body;
+    client.global.set('userAccessToken', res.accessToken.token);
+    client.global.set('userRefreshToken', res.refreshToken.token);
+    client.log('User Token updated!');
+%}
+
+### User tries to get all products, with refreshed token - works
+GET {{BaseUrl}}/api/products
+Authorization: Bearer {{userAccessToken}}
+
+### Login Admin
+POST {{BaseUrl}}/api/auth/logins
+Content-Type: application/json
+
+{
+  "Username": "Admin1",
+  "Password": "Password1"
+}
+
+> {%
+    const res = response.body;
+    client.global.set('adminAccessToken', res.accessToken.token);
+    client.global.set('adminRefreshToken', res.refreshToken.token);
+    client.log('Admin Access-Token: ' + client.global.get('adminAccessToken'));
+    client.log('Admin Refresh-Token: ' + client.global.get('adminRefreshToken'));
+%}
+
+### Admin tries getting product information - works as well
+GET {{BaseUrl}}/api/products
+Authorization: Bearer {{adminAccessToken}}
+
+### Admin tries updating price - works also!
+PATCH {{BaseUrl}}/api/products/1235/price
+Authorization: Bearer {{adminAccessToken}}
+Content-Type: application/json
+
+{
+  "Price": 22
+}

@@ -6,14 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace JwtDemo.Controllers;
 
 [ApiController]
-[Authorize]
+[AllowAnonymous]
 [Route("api/auth")]
 public sealed class AuthController(IAuthService authService) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
 
     [HttpPost]
-    [AllowAnonymous]
     [Route("logins")]
     public async ValueTask<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
     {

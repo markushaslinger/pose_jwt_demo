@@ -21,6 +21,9 @@ public sealed class UserService(IUnitOfWork unitOfWork, IAuthService authService
 
     public async ValueTask<IUserService.AddUserResult> AddNewUser(string username, string password, UserRole role)
     {
+        // in a real world scenario, we would have password criteria/validation
+        // so the following is just a minimal example
+        
         await _unitOfWork.BeginTransaction();
         try
         {
