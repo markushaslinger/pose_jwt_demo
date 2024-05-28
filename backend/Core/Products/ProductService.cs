@@ -5,10 +5,9 @@ namespace JwtDemo.Core.Products;
 
 public partial interface IProductService
 {
-    // we fake it in-memory, so no async needed
-    IReadOnlyCollection<Product> GetAllProducts();
-    GetProductResult GetProductById(int productId);
-    PriceUpdateResult UpdateProductPrice(int productId, decimal requestPrice);
+    ValueTask<IReadOnlyCollection<Product>> GetAllProducts();
+    ValueTask<GetProductResult> GetProductById(int productId);
+    ValueTask<PriceUpdateResult> UpdateProductPrice(int productId, decimal requestPrice);
 
     [Union<Product, NotFound>]
     public readonly partial struct GetProductResult;
@@ -17,43 +16,48 @@ public partial interface IProductService
     public readonly partial struct PriceUpdateResult;
 }
 
-internal sealed class ProductService : IProductService
+// not really relevant for this demo - basic implementation for completeness
+internal sealed class ProductService(IUnitOfWork unitOfWork) : IProductService
 {
-    // not really relevant for this demo, faked in-memory
-    private static readonly List<Product> products =
-    [
-        new Product(1234, "Rice", 0.99M),
-        new Product(1235, "Beans", 1.29M),
-        new Product(1236, "Spaghetti", 1.50M),
-        new Product(1237, "Bread", 2.2M),
-        new Product(1238, "Bottled Water", 0.79M)
-    ];
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    
+    public ValueTask<IReadOnlyCollection<Product>> GetAllProducts() => _unitOfWork.ProductRepository.GetAllProducts();
 
-    public IReadOnlyCollection<Product> GetAllProducts() => products;
-
-    public IProductService.GetProductResult GetProductById(int productId)
+    public async ValueTask<IProductService.GetProductResult> GetProductById(int productId)
     {
-        var product = FindProduct(productId);
+        var product = await _unitOfWork.ProductRepository.GetById(productId);
 
         return product is not null
             ? product
             : new NotFound();
     }
 
-    public IProductService.PriceUpdateResult UpdateProductPrice(int productId, decimal requestPrice)
+    public async ValueTask<IProductService.PriceUpdateResult> UpdateProductPrice(int productId, decimal requestPrice)
     {
-        var product = FindProduct(productId);
-        
-        if (product is null)
+        await _unitOfWork.BeginTransaction();
+        try
         {
-            return new NotFound();
-        }
-        
-        product.Price = requestPrice;
+            var product = await _unitOfWork.ProductRepository.GetById(productId);
 
-        return new Success();
+            if (product is null)
+            {
+                return new NotFound();
+            }
+
+            product.Price = requestPrice;
+
+            await _unitOfWork.Commit();
+
+            return new Success();
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.Rollback();
+            
+            // no logging configured in this auth demo project
+            Console.WriteLine(ex.Message);
+
+            throw;
+        }
     }
-    
-    private static Product? FindProduct(int productId) =>
-        products.FirstOrDefault(p => p.Id == productId);
 }

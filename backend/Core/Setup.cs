@@ -173,7 +173,30 @@ public static class Setup
         using var serviceScope =
             app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
         await using var context = serviceScope.ServiceProvider.GetService<DatabaseContext>();
+        
+        if (context is null)
+        {
+            throw new InvalidOperationException("Database context not available in service provider");
+        }
 
-        await context!.Database.MigrateAsync();
+        await context.Database.MigrateAsync();
+        await InsertDefaultProducts(context);
+        
+        return;
+        
+        static async ValueTask InsertDefaultProducts(DatabaseContext context)
+        {
+            var products = new[]
+            {
+                new Product { Name = "Rice", Price = 0.99M },
+                new Product { Name = "Beans", Price = 1.29M },
+                new Product { Name = "Spaghetti", Price = 1.50M },
+                new Product { Name = "Bread", Price = 2.20M },
+                new Product { Name = "Bottled Water", Price = 0.79M }
+            };
+
+            context.Products.AddRange(products);
+            await context.SaveChangesAsync();
+        }
     }
 }

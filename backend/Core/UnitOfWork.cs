@@ -1,4 +1,5 @@
-﻿using JwtDemo.Core.Users;
+﻿using JwtDemo.Core.Products;
+using JwtDemo.Core.Users;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace JwtDemo.Core;
@@ -6,6 +7,7 @@ namespace JwtDemo.Core;
 public interface IUnitOfWork : IAsyncDisposable, IDisposable
 {
     public IUserRepository UserRepository { get; }
+    public IProductRepository ProductRepository { get; }
     public ValueTask BeginTransaction();
     public ValueTask Commit();
     public ValueTask Rollback();
@@ -39,6 +41,7 @@ public sealed class UnitOfWork(DatabaseContext context) : IUnitOfWork
     }
 
     public IUserRepository UserRepository => new UserRepository(context.Users);
+    public IProductRepository ProductRepository => new ProductRepository(context.Products);
 
     public async ValueTask BeginTransaction()
     {

@@ -11,14 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JwtDemo.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240520192547_Initial")]
+    [Migration("20240528203041_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.5");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.6");
 
             modelBuilder.Entity("JwtDemo.Core.Auth.ActiveRefreshToken", b =>
                 {
@@ -46,6 +46,24 @@ namespace JwtDemo.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ActiveRefreshTokens");
+                });
+
+            modelBuilder.Entity("JwtDemo.Core.Products.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("JwtDemo.Core.Users.User", b =>

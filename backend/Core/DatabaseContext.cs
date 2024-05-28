@@ -1,4 +1,5 @@
 ﻿using JwtDemo.Core.Auth;
+using JwtDemo.Core.Products;
 using JwtDemo.Core.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) :
 {
     public required DbSet<User> Users { get; set; }
     public required DbSet<ActiveRefreshToken> ActiveRefreshTokens { get; set; }
+    public required DbSet<Product> Products { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -15,6 +17,14 @@ public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) :
         
         ConfigureUser(modelBuilder);
         ConfigureActiveRefreshToken(modelBuilder);
+        ConfigureProduct(modelBuilder);
+    }
+
+    private static void ConfigureProduct(ModelBuilder modelBuilder)
+    {
+        var product = modelBuilder.Entity<Product>();
+        product.HasKey(p => p.Id);
+        product.Property(p => p.Id).ValueGeneratedOnAdd();
     }
 
     private static void ConfigureActiveRefreshToken(ModelBuilder modelBuilder)

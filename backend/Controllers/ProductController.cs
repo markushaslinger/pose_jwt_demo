@@ -14,18 +14,18 @@ public sealed class ProductController(IProductService productService) : Controll
     private readonly IProductService _productService = productService;
 
     [HttpGet]
-    public ActionResult<IEnumerable<ProductDto>> GetAll()
+    public async ValueTask<ActionResult<IEnumerable<ProductDto>>> GetAll()
     {
-        var products = _productService.GetAllProducts();
+        var products = await _productService.GetAllProducts();
 
         return Ok(products.Select(ToDto));
     }
 
     [HttpGet]
     [Route("{productId:int}")]
-    public ActionResult<ProductDto> GetById([FromRoute] int productId)
+    public async ValueTask<ActionResult<ProductDto>> GetById([FromRoute] int productId)
     {
-        var productResult = _productService.GetProductById(productId);
+        var productResult = await _productService.GetProductById(productId);
 
         return productResult
             .Match<ActionResult<ProductDto>>(product => Ok(product),
@@ -35,11 +35,11 @@ public sealed class ProductController(IProductService productService) : Controll
     [HttpPatch]
     [Authorize(nameof(UserRole.Admin))]
     [Route("{productId:int}/price")]
-    public IActionResult UpdatePrice([FromRoute] int productId, [FromBody] ProductPriceUpdateRequest request)
+    public async ValueTask<IActionResult> UpdatePrice([FromRoute] int productId, [FromBody] ProductPriceUpdateRequest request)
     {
         // for this demo, we don't care about UOW/transactions
         // we also don't care about validation this time
-        var updateResult = _productService.UpdateProductPrice(productId, request.Price);
+        var updateResult = await _productService.UpdateProductPrice(productId, request.Price);
 
         return updateResult
             .Match<IActionResult>(_ => NoContent(),
