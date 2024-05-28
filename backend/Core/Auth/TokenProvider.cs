@@ -54,7 +54,7 @@ internal sealed class TokenProvider(IOptions<AuthSettings> options, IClock clock
         [
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim(ClaimTypes.SerialNumber, Guid.NewGuid().ToString())
+            new Claim(ClaimTypes.SerialNumber, Guid.NewGuid().ToString("N"))
         ];
 
         var descriptor = new SecurityTokenDescriptor

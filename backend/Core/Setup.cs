@@ -83,6 +83,14 @@ public static class Setup
                         }
                     };
                 });
+
+        services.AddAuthorization(o =>
+        {
+            foreach (var role in Enum.GetNames<UserRole>())
+            {
+                o.AddPolicy(role, p => p.RequireRole(role));
+            }
+        });
     }
 
     public static void ConfigureSwagger(this IServiceCollection services)
