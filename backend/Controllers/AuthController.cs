@@ -18,14 +18,15 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     {
         var loginResult = await _authService.AttemptLogin(request.Username, request.Password);
 
-        return loginResult.Match<ActionResult<TokenResponse>>(success =>
-                                                              {
-                                                                  var token = success.Value;
-                                                                  var response = ToResponse(token);
+        return loginResult
+            .Match<ActionResult<TokenResponse>>(success =>
+                                                {
+                                                    var token = success.Value;
+                                                    var response = ToResponse(token);
 
-                                                                  return Ok(response);
-                                                              },
-                                                              _ => Unauthorized());
+                                                    return Ok(response);
+                                                },
+                                                _ => Unauthorized());
     }
 
     [HttpPost]
@@ -34,14 +35,15 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     {
         var refreshResult = await _authService.AttemptTokenRefresh(request.Username, request.RefreshToken);
 
-        return refreshResult.Match<ActionResult<TokenResponse>>(success =>
-                                                                {
-                                                                    var token = success.Value;
-                                                                    var response = ToResponse(token);
+        return refreshResult
+            .Match<ActionResult<TokenResponse>>(success =>
+                                                {
+                                                    var token = success.Value;
+                                                    var response = ToResponse(token);
 
-                                                                    return Ok(response);
-                                                                },
-                                                                _ => Unauthorized());
+                                                    return Ok(response);
+                                                },
+                                                _ => Unauthorized());
     }
 
     private static TokenResponse ToResponse(ITokenProvider.NewToken token)

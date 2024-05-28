@@ -94,7 +94,7 @@ internal sealed class TokenProvider(IOptions<AuthSettings> options, IClock clock
         // So an Admin may do everything a User can, but not vice versa.
         // A real world application might want to constrain more finely - that would then require more 
         // complex logic when matching policies.
-        
+
         IReadOnlyList<Claim> guest = [Create(UserRole.Guest)];
         IReadOnlyList<Claim> user = [..guest, Create(UserRole.User)];
         IReadOnlyList<Claim> admin = [..user, Create(UserRole.Admin)];
@@ -106,7 +106,7 @@ internal sealed class TokenProvider(IOptions<AuthSettings> options, IClock clock
         };
 
         return claims.ToFrozenDictionary();
-        
+
         static Claim Create(UserRole r)
         {
             var enumStr = Enum.GetName(r)
