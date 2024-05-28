@@ -4,7 +4,7 @@ using NodaTime;
 namespace JwtDemo.Core.Auth;
 
 // this would be much nicer as an owned entity in a JSON column, but we have
-// to wait for complex types being enabled for JSON (maybe EF 9, oder 10)
+// to wait for complex types being enabled for JSON (maybe EF 9, or 10)
 public class ActiveRefreshToken
 {
     public Guid Id { get; set; }

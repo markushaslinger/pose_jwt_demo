@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using JwtDemo.Core.Auth;
+using JwtDemo.Core.Products;
 using JwtDemo.Core.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public static class Setup
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IProductService, ProductService>();
         
         services.AddSingleton<IClock>(SystemClock.Instance);
     }

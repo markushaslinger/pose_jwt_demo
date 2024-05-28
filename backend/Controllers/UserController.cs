@@ -7,7 +7,7 @@ namespace JwtDemo.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("api/user")]
+[Route("api/users")]
 public sealed class UserController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;

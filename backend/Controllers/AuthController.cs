@@ -13,8 +13,8 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     private readonly IAuthService _authService = authService;
 
     [HttpPost]
-    [Route("logins")]
     [AllowAnonymous]
+    [Route("logins")]
     public async ValueTask<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
     {
         var loginResult = await _authService.AttemptLogin(request.Username, request.Password);
