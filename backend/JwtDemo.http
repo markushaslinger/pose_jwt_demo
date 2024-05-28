@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 ### Guest (no token) user tries getting product information - fails!
-GET {{BaseUrl}}/api/products/1234
+GET {{BaseUrl}}/api/products/1
 
 ### Login User
 POST {{BaseUrl}}/api/auth/logins
@@ -41,11 +41,11 @@ Content-Type: application/json
 %}
 
 ### User tries getting product information - remember to send token!
-GET {{BaseUrl}}/api/products/1234
+GET {{BaseUrl}}/api/products/1
 Authorization: Bearer {{userAccessToken}}
 
 ### User tried to update price - fails with 403 (without token we get 401)
-PATCH {{BaseUrl}}/api/products/1235/price
+PATCH {{BaseUrl}}/api/products/2/price
 Authorization: Bearer {{userAccessToken}}
 Content-Type: application/json
 
@@ -95,10 +95,14 @@ GET {{BaseUrl}}/api/products
 Authorization: Bearer {{adminAccessToken}}
 
 ### Admin tries updating price - works also!
-PATCH {{BaseUrl}}/api/products/1235/price
+PATCH {{BaseUrl}}/api/products/2/price
 Authorization: Bearer {{adminAccessToken}}
 Content-Type: application/json
 
 {
   "Price": 22
 }
+
+### Admin checks if price was updated
+GET {{BaseUrl}}/api/products/2
+Authorization: Bearer {{adminAccessToken}}
