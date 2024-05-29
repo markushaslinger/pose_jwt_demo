@@ -1,0 +1,36 @@
+:icons: font
+
+= JWT Demo
+
+Typically, you want your applications to use OIDC providers to allow your users to 'login with GitHub' and similar services.
+That is because security is _hard_ and logins/user data _has_ to be secure.
+
+In an enterprise environment you would probably use something like a dedicated KeyCloak instance (as we do as well) or Microsoft Entra for AD integration etc.
+
+However, for some small project you may still want to do local accounts.
+And even if you use an external service you should still understand how things work and what is going on in the background.
+Make sure you read the comments in the code, they give valuable insights and hints.
+
+This demo project shows you:
+
+* For the link:backend[backend]:
+** Adding new users
+*** With hashed passwords etc.
+** Creating JWT tokens
+*** With user claims, based on their roles
+*** Storing access and refresh tokens in a database
+**** And removing them when expired or user logs out
+** Applying rate limiting for the login endpoint
+** Validating JWT tokens
+** Policies
+*** Creating policies for different roles
+*** Securing endpoints with policies
+* For the link:frontend[frontend]:
+** Login & Logout
+** Storing access and refresh tokens in local storage
+** Automatically applying bearer token to requests
+*** Except for auth requests, which can (should) not have them
+** Role based auth guard for routes
+** Automatically refreshing tokens
+
+CAUTION: As mentioned before, security is hard, and for this demo some shortcuts have been taken. You may use it as a starting point, but don't deploy it as is!

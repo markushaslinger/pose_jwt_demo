@@ -1,0 +1,14 @@
+:icons: font
+
+= JWT Demo -- Backend
+
+Creates and stores JWT and refresh tokens for users.
+A simple SQLite database is used to store data, so this project can be run as-is without any additional setup.
+
+TIP: Take a look at link:./JwtDemo.http[`JwtDemo.http`] for a full run through all the endpoints (creating user, logging in, retrieving data, refreshing token).
+
+No production grade security is implemented in this demo!
+Just some sensible defaults -- except for the one endpoint that allows users to register as administrators, that one is just plain evil 😉.
+Also, there is no validation, no logging and not the cleanst architecture -- take those parts from other, dedicated examples!
+
+Take it as a starting point for your own implementation.
