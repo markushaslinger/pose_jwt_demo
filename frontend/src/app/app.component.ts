@@ -19,16 +19,15 @@ import { toSignal } from "@angular/core/rxjs-interop";
   styleUrl: "./app.component.scss"
 })
 export class AppComponent {
-  private readonly breakpointObserver = inject(BreakpointObserver);
-
   public readonly title: string = "JWT Demo";
-  public showTitleInMainToolbar: Signal<boolean> = computed(() => this.isHandset());
   public showTitleInSidenav: Signal<boolean> = computed(() => !this.showTitleInMainToolbar());
+  private readonly breakpointObserver = inject(BreakpointObserver);
   public isHandset: Signal<boolean> = toSignal(this.breakpointObserver
     .observe(Breakpoints.Handset)
     .pipe(
       map(result => result.matches),
       shareReplay()
     ), { initialValue: false });
+  public showTitleInMainToolbar: Signal<boolean> = computed(() => this.isHandset());
 
 }
