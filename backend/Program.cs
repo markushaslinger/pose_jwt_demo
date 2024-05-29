@@ -11,7 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.ConfigureSwagger();
 builder.Services.LoadConfiguration(builder.Configuration);
 builder.Services.RegisterServices();
-builder.Services.ConfigureAuth(builder.Configuration);
+builder.Services.AddAuth(builder.Configuration);
+builder.Services.AddRateLimiting();
 builder.Services.ConfigureCors(builder.Configuration);
 builder.Services.ConfigureDatabase(builder.Configuration);
 builder.Services.Configure<JsonOptions>(o =>
@@ -29,6 +30,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(Setup.CorsPolicyName);
+app.UseRateLimiter();
 app.UseHttpsRedirection();
 
 await app.UpdateDatabase();

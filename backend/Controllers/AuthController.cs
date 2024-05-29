@@ -1,7 +1,9 @@
-﻿using JwtDemo.Core.Auth;
+﻿using JwtDemo.Core;
+using JwtDemo.Core.Auth;
 using JwtDemo.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace JwtDemo.Controllers;
 
@@ -13,6 +15,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     private readonly IAuthService _authService = authService;
 
     [HttpPost]
+    [EnableRateLimiting(Setup.RateLimitPolicyName)]
     [Route("logins")]
     public async ValueTask<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
     {

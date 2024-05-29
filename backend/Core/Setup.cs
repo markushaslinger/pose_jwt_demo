@@ -1,8 +1,10 @@
 ﻿using System.Text;
+using System.Threading.RateLimiting;
 using JwtDemo.Core.Auth;
 using JwtDemo.Core.Products;
 using JwtDemo.Core.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -14,6 +16,7 @@ namespace JwtDemo.Core;
 public static class Setup
 {
     public const string CorsPolicyName = "CorsPolicy";
+    public const string RateLimitPolicyName = "RateLimitPolicy";
     
     public static void LoadConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
@@ -33,7 +36,7 @@ public static class Setup
         services.AddSingleton<IClock>(SystemClock.Instance);
     }
 
-    public static void ConfigureAuth(this IServiceCollection services, IConfiguration configuration)
+    public static void AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         var settings = configuration.GetSection(AuthSettings.SectionKey).Get<AuthSettings>();
         var tokenSigningKey = settings?.TokenSigningKey;
@@ -205,5 +208,17 @@ public static class Setup
             context.Products.AddRange(products);
             await context.SaveChangesAsync();
         }
+    }
+
+    public static void AddRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(o => o.AddSlidingWindowLimiter(policyName: RateLimitPolicyName, options =>
+        {
+            options.PermitLimit = 100;
+            options.Window = Duration.FromSeconds(30).ToTimeSpan();
+            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            options.QueueLimit = 100;
+            options.SegmentsPerWindow = 3;
+        }));
     }
 }
