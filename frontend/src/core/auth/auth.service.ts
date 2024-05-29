@@ -21,13 +21,15 @@ export class AuthService {
   private readonly localStorage = new LocalStorage("Auth");
 
   private static getNoTokenContext(): HttpContext {
-    return new HttpContext().set(TOKEN_INTERCEPTION_DISABLED, false);
+    return new HttpContext().set(TOKEN_INTERCEPTION_DISABLED, true);
   }
 
   public async getAccessToken(): Promise<IToken | null> {
-    const accessToken = this.localStorage.get<IToken>(AuthService.accessTokenKey);
+    const accessToken = this.getToken(AuthService.accessTokenKey);
     if (accessToken !== null) {
       const expiration = new TokenExpiration(accessToken);
+
+      // second condition also covers first, but I wanted to make the intent very clear
       if (expiration.isExpired()
         || expiration.isRemainingTimeShorterThan(AuthService.expirationThreshold)) {
         return await this.tryTokenRefresh(accessToken);
@@ -74,7 +76,7 @@ export class AuthService {
   }
 
   private async tryTokenRefresh(accessToken: IToken): Promise<IToken | null> {
-    const refreshToken = this.localStorage.get<IToken>(AuthService.refreshTokenKey);
+    const refreshToken = this.getToken(AuthService.refreshTokenKey);
     if (refreshToken === null) {
       console.log("No refresh token available");
       return null;
@@ -124,6 +126,15 @@ export class AuthService {
     this.localStorage.set(AuthService.refreshTokenKey, refreshToken);
 
     return accessToken;
+  }
+
+  private getToken(key: string) : IToken | null {
+    const rawToken = this.localStorage.get<IToken>(key);
+    if (rawToken){
+      return TokenDataWire.parse(rawToken) as IToken;
+    }
+
+    return null;
   }
 }
 

@@ -61,6 +61,12 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  public logout(): void {
+    this.authService.logout();
+    this.userName.set(null);
+    this.loginForm.reset();
+  }
+
   private async doLoginCheck(): Promise<void> {
     const user = await this.userService.getUser();
     this.userName.set(user?.username ?? null);

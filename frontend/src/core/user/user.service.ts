@@ -16,6 +16,19 @@ export class UserService {
     return null;
   }
 
+  public async isLoggedIn(): Promise<boolean> {
+    const user = await this.getUser();
+    return user !== null;
+  }
+
+  public async hasRole(role: UserRole): Promise<boolean> {
+    const user = await this.getUser();
+
+    // this works because we assume that higher roles contain all permissions of lower roles
+    // and the enum values are ordered accordingly
+    return user !== null && user.role >= role;
+  }
+
   public static decodeToken(accessToken: string): IUser | null {
     const decoded = jwtDecode(accessToken) as IAccessToken;
 

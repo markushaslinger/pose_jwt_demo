@@ -32,7 +32,12 @@
       }
     </mat-card-content>
     <mat-card-actions class="actions">
-      <button mat-raised-button color="primary" type="submit" [disabled]="isLoggedIn()">Login</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="isLoggedIn()">
+        Login
+      </button>
+      <button mat-raised-button color="secondary" [disabled]="!isLoggedIn()"
+              (click)="logout(); $event.preventDefault();">
+        Logout</button>
     </mat-card-actions>
   </mat-card>
 </form>
