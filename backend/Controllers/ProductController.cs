@@ -37,8 +37,7 @@ public sealed class ProductController(IProductService productService) : Controll
     [Route("{productId:int}/price")]
     public async ValueTask<IActionResult> UpdatePrice([FromRoute] int productId, [FromBody] ProductPriceUpdateRequest request)
     {
-        // for this demo, we don't care about UOW/transactions
-        // we also don't care about validation this time
+        // for this demo, we don't care about validation
         var updateResult = await _productService.UpdateProductPrice(productId, request.Price);
 
         return updateResult
