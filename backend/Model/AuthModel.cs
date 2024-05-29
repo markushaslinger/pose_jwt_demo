@@ -9,6 +9,12 @@ public sealed class LoginRequest
     public required string Password { get; set; }
 }
 
+public sealed class LogoutRequest
+{
+    public required string Username { get; set; }
+    public required string RefreshToken { get; set; }
+}
+
 public sealed class TokenResponse
 {
     public required TokenDataDto AccessToken { get; set; }

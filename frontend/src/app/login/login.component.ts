@@ -63,8 +63,8 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  public logout(): void {
-    this.authService.logout();
+  public async logout(): Promise<void> {
+    await this.authService.logout();
     this.userName.set(null);
     this.loginForm.reset();
   }

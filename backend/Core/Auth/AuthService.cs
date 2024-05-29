@@ -13,9 +13,13 @@ public partial interface IAuthService
     public ValueTask<LoginResult> AttemptLogin(string username, string suppliedPlaintextPassword);
     public ValueTask<LoginResult> AttemptTokenRefresh(string username, string suppliedRefreshToken);
     public HashedPassword HashPassword(string plaintext);
+    public ValueTask<LogoutResult> AttemptLogout(string requestUsername, string requestRefreshToken);
 
-    [Union<Success<ITokenProvider.NewToken>, Failure>]
+    [Union<Success<ITokenProvider.NewToken>, NotFound, Failure>]
     public readonly partial struct LoginResult;
+    
+    [Union<Success, NotFound>]
+    public readonly partial struct LogoutResult;
 
     public sealed record HashedPassword(byte[] PasswordHash, byte[] Salt);
 }
@@ -86,6 +90,41 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
         return new IAuthService.HashedPassword(hashedPassword.PasswordHash.ToArray(), hashedPassword.Salt.ToArray());
     }
 
+    public async ValueTask<IAuthService.LogoutResult> AttemptLogout(string username, string refreshToken)
+    {
+        // we could also create a blocklist to revoke the access token, but given the short expiration time,
+        // we won't bother with that added complexity this time
+        await _unitOfWork.BeginTransaction();
+        try
+        {
+            var userResult = await _unitOfWork.UserRepository.GetByUsername(username);
+            if (userResult.IsNotFound)
+            {
+                return new NotFound();
+            }
+
+            var user = userResult.AsUser();
+            if (!TryFindRefreshToken(user, GetPasswordBytes(refreshToken), out var activeRefreshToken))
+            {
+                return new NotFound();
+            }
+
+            user.ActiveRefreshTokens.Remove(activeRefreshToken);
+            await _unitOfWork.Commit();
+
+            return new Success();
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.Rollback();
+
+            // no logging configured in this auth demo project
+            Console.WriteLine(ex.Message);
+
+            throw;
+        }
+    }
+
     public async ValueTask<IAuthService.LoginResult> AttemptTokenRefresh(string username, string suppliedRefreshToken)
     {
         await _unitOfWork.BeginTransaction();
@@ -119,23 +158,9 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
 
         IAuthService.LoginResult AttemptRefresh(User user)
         {
-            var tokenBytes = GetPasswordBytes(suppliedRefreshToken);
-
             RemoveExpiredRefreshTokens(user);
 
-            ActiveRefreshToken? refreshToken = null;
-            foreach (var activeRefreshToken in user.ActiveRefreshTokens)
-            {
-                var hashedProvidedToken = HashPassword(tokenBytes, activeRefreshToken.TokenSalt);
-                if (!hashedProvidedToken.SequenceEqual(activeRefreshToken.TokenHash))
-                {
-                    continue;
-                }
-
-                refreshToken = activeRefreshToken;
-            }
-
-            if (refreshToken is null)
+            if (!TryFindRefreshToken(user, GetPasswordBytes(suppliedRefreshToken), out var refreshToken))
             {
                 return new Failure();
             }
@@ -147,6 +172,25 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
 
             return new Success<ITokenProvider.NewToken>(token);
         }
+    }
+
+    private static bool TryFindRefreshToken(User user, ReadOnlySpan<byte> tokenBytes,
+                                            out ActiveRefreshToken refreshToken)
+    {
+        foreach (var activeRefreshToken in user.ActiveRefreshTokens)
+        {
+            var hashedProvidedToken = HashPassword(tokenBytes, activeRefreshToken.TokenSalt);
+            if (hashedProvidedToken.SequenceEqual(activeRefreshToken.TokenHash))
+            {
+                refreshToken = activeRefreshToken;
+
+                return true;
+            }
+        }
+
+        refreshToken = default(ActiveRefreshToken)!;
+
+        return false;
     }
 
     private static void AddNewRefreshToken(User user, ITokenProvider.TokenData refreshToken)

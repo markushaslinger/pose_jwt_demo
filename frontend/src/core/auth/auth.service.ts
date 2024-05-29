@@ -40,7 +40,7 @@ export class AuthService {
   public async login(username: string, password: string): Promise<IToken | null> {
     const url = `${this.baseUrl}/logins`;
 
-    this.logout();
+    this.clearLocalStorage();
 
     const payload = {
       username,
@@ -66,7 +66,45 @@ export class AuthService {
     return null;
   }
 
-  public logout(): void {
+  public async logout(): Promise<void> {
+    const accessToken = this.getToken(AuthService.accessTokenKey);
+    if (accessToken) {
+      await this.logoutFromBackend(accessToken);
+    }
+
+    this.clearLocalStorage();
+  }
+
+  private async logoutFromBackend(accessToken: IToken): Promise<void> {
+    // we try to log out from the backend, which will invalidate the refresh token
+
+    const refreshToken = this.getToken(AuthService.refreshTokenKey);
+
+    if (!refreshToken) {
+      return;
+    }
+
+    const username = UserService.decodeToken(accessToken.token)?.username;
+    if (!username) {
+      return;
+    }
+
+    const url = `${this.baseUrl}/logouts`;
+    const response = await lastValueFrom(this.client.post(url, {
+        username,
+        refreshToken: refreshToken.token
+      },
+      {
+        context: AuthService.getNoTokenContext(),
+        observe: "response"
+      }));
+
+    if (response.ok) {
+      console.log("Logged out successfully from backend");
+    }
+  }
+
+  private clearLocalStorage(): void {
     this.localStorage.remove(AuthService.accessTokenKey);
     this.localStorage.remove(AuthService.refreshTokenKey);
   }
@@ -124,9 +162,9 @@ export class AuthService {
     return accessToken;
   }
 
-  private getToken(key: string) : IToken | null {
+  private getToken(key: string): IToken | null {
     const rawToken = this.localStorage.get<IToken>(key);
-    if (rawToken){
+    if (rawToken) {
       return TokenDataWire.parse(rawToken) as IToken;
     }
 
