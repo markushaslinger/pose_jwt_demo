@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Update {{product.name}} (#{{product.id}})</h2>
+<mat-dialog-content>
+  <mat-form-field>
+    <mat-label>Price</mat-label>
+    <input matInput [(ngModel)]="product.price">
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">Cancel</button>
+  <button mat-button [mat-dialog-close]="product.price" cdkFocusInitial>Ok</button>
+</mat-dialog-actions>

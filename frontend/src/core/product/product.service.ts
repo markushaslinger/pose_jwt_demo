@@ -12,6 +12,7 @@ export class ProductService {
   private readonly client: HttpClient = inject(HttpClient);
 
   public async getAllProducts(): Promise<IProduct[]> {
+    // HttpClient will have the bearer token set automatically by the interceptor for every request!
     const response = await firstValueFrom(this.client.get(this.baseUrl, { observe: "response" }));
     if (response.ok) {
       return ProductsWire.parse(response.body) as IProduct[];

@@ -20,10 +20,6 @@ export class AuthService {
   private readonly client = inject(HttpClient);
   private readonly localStorage = new LocalStorage("Auth");
 
-  private static getNoTokenContext(): HttpContext {
-    return new HttpContext().set(TOKEN_INTERCEPTION_DISABLED, true);
-  }
-
   public async getAccessToken(): Promise<IToken | null> {
     const accessToken = this.getToken(AuthService.accessTokenKey);
     if (accessToken !== null) {
@@ -135,6 +131,10 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  private static getNoTokenContext(): HttpContext {
+    return new HttpContext().set(TOKEN_INTERCEPTION_DISABLED, true);
   }
 }
 
