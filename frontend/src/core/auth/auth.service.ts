@@ -143,8 +143,6 @@ export interface IToken {
   expiration: Instant;
 }
 
-type TokenData = z.infer<typeof TokenDataWire>;
-
 const TokenDataWire = z.object({
   token: z.string(),
   expiration: z.string().transform(s => Instant.parse(s))

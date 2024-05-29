@@ -1,35 +1,67 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { BASE_URL } from "../const";
+import { firstValueFrom } from "rxjs";
+import { z } from "zod";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root"
 })
 export class ProductService {
-
-  constructor() { }
+  private readonly baseUrl = `${BASE_URL}/products`;
+  private readonly client: HttpClient = inject(HttpClient);
 
   public async getAllProducts(): Promise<IProduct[]> {
-    return Promise.resolve([{
-      id: 1,
-      name: "Product 1",
-      price: 100
-    }, {
-      id: 2,
-      name: "Product 2",
-      price: 200
-    }, {
-      id: 3,
-      name: "Product 3",
-      price: 300
-    }, {
-      id: 4,
-      name: "Product 4",
-      price: 400
-    }, {
-      id: 5,
-      name: "Product 5",
-      price: 500
+    const response = await firstValueFrom(this.client.get(this.baseUrl, { observe: "response" }));
+    if (response.ok) {
+      return ProductsWire.parse(response.body) as IProduct[];
+    }
 
-    }]);
+    // throughout this service the error handling and logging is very basic again - just for demonstration purposes
+    if (response.status === 401) {
+      console.log("Unauthenticated user cannot get products");
+    }
+
+    return [];
+  }
+
+  public async getProductById(id: number): Promise<IProduct | null> {
+    const url = `${this.baseUrl}/${id}`;
+    const response = await firstValueFrom(this.client.get(url, { observe: "response" }));
+    if (response.ok) {
+      return ProductWire.parse(response.body) as IProduct;
+    }
+
+    if (response.status === 401) {
+      console.log("Unauthenticated user cannot get product by id");
+    }
+
+    return null;
+  }
+
+  public async updatePrice(id: number, price: number): Promise<boolean> {
+    const url = `${this.baseUrl}/${id}/price`;
+    const response = await firstValueFrom(this.client.patch(url, { price }, { observe: "response" }));
+    if (response.ok) {
+      return true;
+    }
+
+    switch (response.status) {
+      case 401:
+        console.log("Unauthenticated user cannot update price");
+        break;
+      case 403:
+        console.log("User does not have permission to update price");
+        break;
+      case 404:
+        console.log("Product not found");
+        break;
+      default:
+        // being lazy here
+        break;
+    }
+
+    return false;
   }
 }
 
@@ -38,3 +70,10 @@ export interface IProduct {
   name: string;
   price: number;
 }
+
+const ProductWire = z.object({
+  id: z.number(),
+  name: z.string().min(1),
+  price: z.number()
+});
+const ProductsWire = z.array(ProductWire);

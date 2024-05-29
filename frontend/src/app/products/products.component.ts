@@ -12,6 +12,8 @@ import {
   MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef,
   MatTable
 } from "@angular/material/table";
+import { MatIconButton } from "@angular/material/button";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: "app-products",
@@ -28,7 +30,9 @@ import {
     MatHeaderRow,
     MatHeaderRowDef,
     MatRow,
-    MatRowDef
+    MatRowDef,
+    MatIconButton,
+    MatIcon
   ],
   templateUrl: "./products.component.html",
   styleUrl: "./products.component.scss"
@@ -39,6 +43,9 @@ export class ProductsComponent {
     {initialValue: []});
   public readonly displayedColumns: Signal<string[]> = signal(["id", "name", "price"]);
 
+  public async editProduct(productId: number): Promise<void> {
+
+  }
 }
 
 

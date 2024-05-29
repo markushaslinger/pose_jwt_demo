@@ -15,6 +15,7 @@ import { MatInput } from "@angular/material/input";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AuthService } from "../../core/auth/auth.service";
 import { UserService } from "../../core/user/user.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: 'app-login',
@@ -39,6 +40,7 @@ export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly snackbarService = inject(MatSnackBar);
 
   public readonly userName: WritableSignal<string | null> = signal(null);
   public readonly isLoggedIn: Signal<boolean> = computed(() => this.userName() !== null);
@@ -57,7 +59,7 @@ export class LoginComponent implements OnInit {
     if (result) {
       await this.doLoginCheck();
     } else {
-      console.error("Login failed");
+      this.snackbarService.open("Login failed!", "Close", {duration: 2000});
     }
   }
 
