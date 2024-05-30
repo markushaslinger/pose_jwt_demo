@@ -85,6 +85,25 @@ public static class Setup
                             return now >= notBefore && now <= expires;
                         }
                     };
+                    
+                    // this is required for SignalR
+                    // it will take the token from the query string on the connection request
+                    // and move it to the token property of the context to be processed as normal
+                    o.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            
+                            if (!string.IsNullOrWhiteSpace(accessToken) && path.StartsWithSegments("/hubs"))
+                            {
+                                context.Token = accessToken;
+                            }
+
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
         services.AddAuthorization(o =>

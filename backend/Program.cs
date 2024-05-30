@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using JwtDemo.BackgroundServices;
 using JwtDemo.Core;
+using JwtDemo.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
@@ -7,6 +9,11 @@ using NodaTime.Serialization.SystemTextJson;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR()
+       .AddJsonProtocol(o =>
+       {
+           o.PayloadSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+       });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.ConfigureSwagger();
 builder.Services.LoadConfiguration(builder.Configuration);
@@ -15,6 +22,7 @@ builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddRateLimiting();
 builder.Services.ConfigureCors(builder.Configuration);
 builder.Services.ConfigureDatabase(builder.Configuration);
+builder.Services.AddHostedService<TimeUpdateService>();
 builder.Services.Configure<JsonOptions>(o =>
 {
     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -39,5 +47,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<TimeHub>("hubs/time");
 
 app.Run();
