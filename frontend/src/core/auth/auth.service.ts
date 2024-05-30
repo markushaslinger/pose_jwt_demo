@@ -1,7 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpContext } from "@angular/common/http";
 import { TOKEN_INTERCEPTION_DISABLED } from "./interceptor";
-import { BASE_URL } from "../const";
+import { API_BASE_URL } from "../const";
 import { lastValueFrom } from "rxjs";
 import { Duration, Instant } from "@js-joda/core";
 import { z } from "zod";
@@ -16,7 +16,7 @@ export class AuthService {
   private static readonly accessTokenKey = "accessToken";
   private static readonly refreshTokenKey = "refreshToken";
   private static readonly expirationThreshold = Duration.ofMinutes(2);
-  private readonly baseUrl = `${BASE_URL}/auth`;
+  private readonly baseUrl = `${API_BASE_URL}/auth`;
   private readonly client = inject(HttpClient);
   private readonly localStorage = new LocalStorage("Auth");
 

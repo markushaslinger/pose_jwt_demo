@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { BASE_URL } from "../const";
+import { API_BASE_URL } from "../const";
 import { firstValueFrom } from "rxjs";
 import { z } from "zod";
 
@@ -8,7 +8,7 @@ import { z } from "zod";
   providedIn: "root"
 })
 export class ProductService {
-  private readonly baseUrl = `${BASE_URL}/products`;
+  private readonly baseUrl = `${API_BASE_URL}/products`;
   private readonly client: HttpClient = inject(HttpClient);
 
   public async getAllProducts(): Promise<IProduct[]> {
