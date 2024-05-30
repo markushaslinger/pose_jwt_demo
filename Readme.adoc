@@ -25,6 +25,7 @@ This demo project shows you:
 ** Policies
 *** Creating policies for different roles
 *** Securing endpoints with policies
+** Providing a SignalR hub which checks for user auth state
 * For the link:frontend[frontend]:
 ** Login & Logout
 ** Storing access and refresh tokens in local storage
@@ -32,5 +33,6 @@ This demo project shows you:
 *** Except for auth requests, which can (should) not have them
 ** Role based auth guard for routes
 ** Automatically refreshing tokens
+** Using token with SignalR connection
 
 CAUTION: As mentioned before, security is hard, and for this demo some shortcuts have been taken. You may use it as a starting point, but don't deploy it as is!

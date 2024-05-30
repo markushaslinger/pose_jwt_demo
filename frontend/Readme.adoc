@@ -8,5 +8,6 @@ This angular project shows how to:
 * Intercept the HTTP requests and add the access token to the headers
 * Automatically refresh the access token when it expires
 ** One could add a timer here as well, but there should be some timeout at least
+* Use the JWT token with a SignalR hub
 
 Built for Angular 18 zoneless mode.
