@@ -23,19 +23,8 @@
             "polyfills": [
             ],
             "externalDependencies": [
-              "http",
-              "https",
-              "url",
-              "util",
-              "net"
             ],
             "allowedCommonJsDependencies": [
-              "tough-cookie",
-              "node-fetch",
-              "fetch-cookie",
-              "abort-controller",
-              "ws",
-              "eventsource"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
