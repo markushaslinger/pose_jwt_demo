@@ -7,15 +7,14 @@ import { AuthService } from "../../../core/auth/auth.service";
 import { MatCard, MatCardContent } from "@angular/material/card";
 
 @Component({
-  selector: 'app-home-time-display',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MatCard,
-    MatCardContent
-  ],
-  templateUrl: './home-time-display.component.html',
-  styleUrl: './home-time-display.component.scss'
+    selector: 'app-home-time-display',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatCard,
+        MatCardContent
+    ],
+    templateUrl: './home-time-display.component.html',
+    styleUrl: './home-time-display.component.scss'
 })
 export class HomeTimeDisplayComponent implements OnInit, OnDestroy {
   private readonly authService: AuthService = inject(AuthService);

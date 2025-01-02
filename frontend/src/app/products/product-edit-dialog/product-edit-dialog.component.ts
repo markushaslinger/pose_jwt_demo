@@ -13,23 +13,22 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { IProduct } from "../../../core/product/product.service";
 
 @Component({
-  selector: 'app-product-edit-dialog',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MatDialogTitle,
-    MatDialogContent,
-    MatFormField,
-    MatDialogActions,
-    MatButton,
-    MatInput,
-    MatLabel,
-    ReactiveFormsModule,
-    MatDialogClose,
-    FormsModule
-  ],
-  templateUrl: './product-edit-dialog.component.html',
-  styleUrl: './product-edit-dialog.component.scss'
+    selector: 'app-product-edit-dialog',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatDialogTitle,
+        MatDialogContent,
+        MatFormField,
+        MatDialogActions,
+        MatButton,
+        MatInput,
+        MatLabel,
+        ReactiveFormsModule,
+        MatDialogClose,
+        FormsModule
+    ],
+    templateUrl: './product-edit-dialog.component.html',
+    styleUrl: './product-edit-dialog.component.scss'
 })
 export class ProductEditDialogComponent {
   public readonly dialogRef: MatDialogRef<ProductEditDialogComponent> = inject(MatDialogRef<ProductEditDialogComponent>);

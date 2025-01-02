@@ -18,23 +18,22 @@ import { UserService } from "../../core/user/user.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MatCard,
-    MatCardHeader,
-    MatCardContent,
-    MatCardTitle,
-    MatError,
-    MatFormField,
-    MatCardActions,
-    MatButton,
-    MatInput,
-    ReactiveFormsModule
-  ],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+    selector: 'app-login',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatCard,
+        MatCardHeader,
+        MatCardContent,
+        MatCardTitle,
+        MatError,
+        MatFormField,
+        MatCardActions,
+        MatButton,
+        MatInput,
+        ReactiveFormsModule
+    ],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

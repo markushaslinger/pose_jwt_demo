@@ -20,27 +20,26 @@ import { UserRole, UserService } from "../../core/user/user.service";
 import { MatProgressBar } from "@angular/material/progress-bar";
 
 @Component({
-  selector: "app-products",
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MatCard,
-    MatTable,
-    MatColumnDef,
-    MatHeaderCell,
-    MatHeaderCellDef,
-    MatCell,
-    MatCellDef,
-    MatHeaderRow,
-    MatHeaderRowDef,
-    MatRow,
-    MatRowDef,
-    MatIconButton,
-    MatIcon,
-    MatProgressBar
-  ],
-  templateUrl: "./products.component.html",
-  styleUrl: "./products.component.scss"
+    selector: "app-products",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MatCard,
+        MatTable,
+        MatColumnDef,
+        MatHeaderCell,
+        MatHeaderCellDef,
+        MatCell,
+        MatCellDef,
+        MatHeaderRow,
+        MatHeaderRowDef,
+        MatRow,
+        MatRowDef,
+        MatIconButton,
+        MatIcon,
+        MatProgressBar
+    ],
+    templateUrl: "./products.component.html",
+    styleUrl: "./products.component.scss"
 })
 export class ProductsComponent implements OnInit {
   private readonly productService: ProductService = inject(ProductService);
