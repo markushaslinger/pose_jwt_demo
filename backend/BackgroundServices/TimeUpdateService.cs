@@ -13,8 +13,6 @@ public sealed class TimeUpdateService(
     IOptions<Settings> options) : BackgroundService
 {
     private const int LowQualityUpdateInterval = 5;
-    private readonly IClock _clock = clock;
-    private readonly IHubContext<TimeHub, ITimeClient> _hubContext = hubContext;
     private readonly Settings _settings = options.Value;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -39,7 +37,7 @@ public sealed class TimeUpdateService(
             CurrentTime = currentTime,
             Quality = TimeQuality.High
         };
-        await _hubContext.Clients.Group(TimeHub.AuthenticatedGroupName).ReceiveTime(update);
+        await hubContext.Clients.Group(TimeHub.AuthenticatedGroupName).ReceiveTime(update);
 
         if (sendToUsersOnly)
         {
@@ -47,7 +45,7 @@ public sealed class TimeUpdateService(
         }
 
         update.Quality = TimeQuality.Low;
-        await _hubContext.Clients.Group(TimeHub.UnauthenticatedGroupName).ReceiveTime(update);
+        await hubContext.Clients.Group(TimeHub.UnauthenticatedGroupName).ReceiveTime(update);
     }
 
     private Duration GetDurationUntilNextFullSecond()
@@ -62,7 +60,7 @@ public sealed class TimeUpdateService(
     private LocalDateTime GetLocalTime()
     {
         var timezone = DateTimeZoneProviders.Tzdb[_settings.Timezone];
-        var zonedTime = _clock.GetCurrentInstant().InZone(timezone);
+        var zonedTime = clock.GetCurrentInstant().InZone(timezone);
 
         return zonedTime.LocalDateTime;
     }

@@ -1,4 +1,5 @@
-﻿using JwtDemo.Core.Users;
+﻿using JwtDemo.Core;
+using JwtDemo.Core.Users;
 using JwtDemo.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +9,8 @@ namespace JwtDemo.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/users")]
-public sealed class UserController(IUserService userService) : ControllerBase
+public sealed class UserController(IUserService userService, ITransactionProvider transaction) : ControllerBase
 {
-    private readonly IUserService _userService = userService;
-
     #region Insecure Demo Code - Ignore!
 
     // !! This is obviously just a placeholder, don't let anonymous requests create new users !!
@@ -20,12 +19,29 @@ public sealed class UserController(IUserService userService) : ControllerBase
     [Route("registrations")]
     public async ValueTask<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var addNewResult = await _userService.AddNewUser(request.Username, request.Password, request.Role);
+        try
+        {
+            await transaction.BeginTransactionAsync();
 
-        return addNewResult.Match<IActionResult>(_ => Created(),
-                                                 _ => BadRequest());
+            var addNewResult = await userService.AddNewUser(request.Username, request.Password, request.Role);
+
+            return await addNewResult
+                .MatchAsync<IActionResult>(async _ =>
+                                           {
+                                               await transaction.CommitAsync();
+
+                                               return Created();
+                                           },
+                                           _ => ValueTask.FromResult<IActionResult>(BadRequest()));
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            Console.WriteLine(ex.Message);
+
+            return Problem();
+        }
     }
 
     #endregion
-
 }

@@ -4,19 +4,22 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace JwtDemo.Core;
 
+public interface ITransactionProvider
+{
+    public ValueTask BeginTransactionAsync();
+    public ValueTask CommitAsync();
+    public ValueTask RollbackAsync();
+}
+
 public interface IUnitOfWork : IAsyncDisposable, IDisposable
 {
     public IUserRepository UserRepository { get; }
     public IProductRepository ProductRepository { get; }
-    public ValueTask BeginTransaction();
-    public ValueTask Commit();
-    public ValueTask Rollback();
 }
 
-public sealed class UnitOfWork(DatabaseContext context) : IUnitOfWork
+public sealed class UnitOfWork(DatabaseContext context) : IUnitOfWork, ITransactionProvider
 {
     private IDbContextTransaction? _transaction;
-    private int _transactionDepth;
 
     public async ValueTask DisposeAsync()
     {
@@ -43,47 +46,36 @@ public sealed class UnitOfWork(DatabaseContext context) : IUnitOfWork
     public IUserRepository UserRepository => new UserRepository(context.Users);
     public IProductRepository ProductRepository => new ProductRepository(context.Products);
 
-    public async ValueTask BeginTransaction()
+    public async ValueTask BeginTransactionAsync()
     {
-        if (_transactionDepth == 0)
+        if (_transaction is not null)
         {
-            _transaction = await context.Database.BeginTransactionAsync();
+            throw new InvalidOperationException("Transaction already started");
         }
 
-        _transactionDepth++;
+        _transaction = await context.Database.BeginTransactionAsync();
     }
 
-    public async ValueTask Commit()
+    public async ValueTask CommitAsync()
     {
         if (_transaction is null)
         {
             throw new InvalidOperationException("No transaction started");
         }
 
-        _transactionDepth--;
-        if (_transactionDepth == 0)
-        {
-            await context.SaveChangesAsync();
-            await _transaction.CommitAsync();
-            _transaction = null;
-        }
+        await context.SaveChangesAsync();
+        await _transaction.CommitAsync();
+        _transaction = null;
     }
 
-    public async ValueTask Rollback()
+    public async ValueTask RollbackAsync()
     {
         if (_transaction is null)
         {
             throw new InvalidOperationException("No transaction started");
         }
 
-        _transactionDepth--;
-        if (_transactionDepth == 0)
-        {
-            // deliberately not rolling back everything if any sub transaction fails
-            // it is expected that an exception will be thrown and the transaction will be rolled back
-            // at the caller location as with any other exception
-            await _transaction.RollbackAsync();
-            _transaction = null;
-        }
+        await _transaction.RollbackAsync();
+        _transaction = null;
     }
 }

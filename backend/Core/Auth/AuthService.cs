@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
 using System.Text;
 using JwtDemo.Core.Users;
 using NodaTime;
@@ -17,7 +18,7 @@ public partial interface IAuthService
 
     [Union<Success<ITokenProvider.NewToken>, NotFound, Failure>]
     public readonly partial struct LoginResult;
-    
+
     [Union<Success, NotFound>]
     public readonly partial struct LogoutResult;
 
@@ -27,48 +28,31 @@ public partial interface IAuthService
 internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IUnitOfWork unitOfWork) : IAuthService
 {
     private const int KeySize = 64;
-    private const int Iterations = 100_000;
+    private const int Iterations = 200_000;
 
     private readonly ZonedClock _clock = clock.InUtc();
-    private readonly ITokenProvider _tokenProvider = tokenProvider;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async ValueTask<IAuthService.LoginResult> AttemptLogin(string username, string suppliedPlaintextPassword)
     {
-        await _unitOfWork.BeginTransaction();
-        try
+        var userResult = await unitOfWork.UserRepository.GetByUsername(username);
+        if (userResult.IsNotFound)
         {
-            var userResult = await _unitOfWork.UserRepository.GetByUsername(username);
-            if (userResult.IsNotFound)
-            {
-                return new Failure();
-            }
-
-            var user = userResult.AsUser();
-
-            if (!IsPasswordValid(user))
-            {
-                return new Failure();
-            }
-
-            var token = _tokenProvider.CreateToken(user);
-            UpdateUserRefreshToken(user, token.RefreshToken);
-
-            await _unitOfWork.Commit();
-
-            return new Success<ITokenProvider.NewToken>(token);
-        }
-        catch (Exception ex)
-        {
-            await _unitOfWork.Rollback();
-
-            // no logging configured in this auth demo project
-            Console.WriteLine(ex.Message);
-
-            throw;
+            return new Failure();
         }
 
-        bool IsPasswordValid(User user)
+        var user = userResult.AsUser();
+
+        if (!IsPasswordValid())
+        {
+            return new Failure();
+        }
+
+        var token = tokenProvider.CreateToken(user);
+        UpdateUserRefreshToken(token.RefreshToken);
+
+        return new Success<ITokenProvider.NewToken>(token);
+
+        bool IsPasswordValid()
         {
             var passwordBytes = GetPasswordBytes(suppliedPlaintextPassword);
             var hashedPassword = new HashedPassword(user.PasswordHash, user.PasswordSalt);
@@ -76,7 +60,7 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
             return VerifyPassword(passwordBytes, hashedPassword);
         }
 
-        void UpdateUserRefreshToken(User user, ITokenProvider.TokenData refreshToken)
+        void UpdateUserRefreshToken(ITokenProvider.TokenData refreshToken)
         {
             RemoveExpiredRefreshTokens(user);
             AddNewRefreshToken(user, refreshToken);
@@ -94,69 +78,37 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
     {
         // we could also create a blocklist to revoke the access token, but given the short expiration time,
         // we won't bother with that added complexity this time
-        await _unitOfWork.BeginTransaction();
-        try
+        var userResult = await unitOfWork.UserRepository.GetByUsername(username);
+        if (userResult.IsNotFound)
         {
-            var userResult = await _unitOfWork.UserRepository.GetByUsername(username);
-            if (userResult.IsNotFound)
-            {
-                return new NotFound();
-            }
-
-            var user = userResult.AsUser();
-            if (!TryFindRefreshToken(user, GetPasswordBytes(refreshToken), out var activeRefreshToken))
-            {
-                return new NotFound();
-            }
-
-            user.ActiveRefreshTokens.Remove(activeRefreshToken);
-            await _unitOfWork.Commit();
-
-            return new Success();
+            return new NotFound();
         }
-        catch (Exception ex)
+
+        var user = userResult.AsUser();
+        if (!TryFindRefreshToken(user, GetPasswordBytes(refreshToken), out var activeRefreshToken))
         {
-            await _unitOfWork.Rollback();
-
-            // no logging configured in this auth demo project
-            Console.WriteLine(ex.Message);
-
-            throw;
+            return new NotFound();
         }
+
+        user.ActiveRefreshTokens.Remove(activeRefreshToken);
+
+        return new Success();
     }
 
     public async ValueTask<IAuthService.LoginResult> AttemptTokenRefresh(string username, string suppliedRefreshToken)
     {
-        await _unitOfWork.BeginTransaction();
-        try
+        var userResult = await unitOfWork.UserRepository.GetByUsername(username);
+        if (userResult.IsNotFound)
         {
-            var userResult = await _unitOfWork.UserRepository.GetByUsername(username);
-            if (userResult.IsNotFound)
-            {
-                return new Failure();
-            }
-
-            var user = userResult.AsUser();
-
-            var refreshResult = AttemptRefresh(user);
-            if (refreshResult.IsSuccessOfNewToken)
-            {
-                await _unitOfWork.Commit();
-            }
-
-            return refreshResult;
-        }
-        catch (Exception ex)
-        {
-            await _unitOfWork.Rollback();
-
-            // no logging configured in this auth demo project
-            Console.WriteLine(ex.Message);
-
-            throw;
+            return new Failure();
         }
 
-        IAuthService.LoginResult AttemptRefresh(User user)
+        var user = userResult.AsUser();
+        var refreshResult = AttemptRefresh();
+
+        return refreshResult;
+
+        IAuthService.LoginResult AttemptRefresh()
         {
             RemoveExpiredRefreshTokens(user);
 
@@ -167,7 +119,7 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
 
             user.ActiveRefreshTokens.Remove(refreshToken);
 
-            var token = _tokenProvider.CreateToken(user);
+            var token = tokenProvider.CreateToken(user);
             AddNewRefreshToken(user, token.RefreshToken);
 
             return new Success<ITokenProvider.NewToken>(token);
@@ -175,7 +127,7 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
     }
 
     private static bool TryFindRefreshToken(User user, ReadOnlySpan<byte> tokenBytes,
-                                            out ActiveRefreshToken refreshToken)
+                                            [NotNullWhen(true)] out ActiveRefreshToken? refreshToken)
     {
         foreach (var activeRefreshToken in user.ActiveRefreshTokens)
         {
@@ -188,7 +140,7 @@ internal sealed class AuthService(ITokenProvider tokenProvider, IClock clock, IU
             }
         }
 
-        refreshToken = default(ActiveRefreshToken)!;
+        refreshToken = null;
 
         return false;
     }

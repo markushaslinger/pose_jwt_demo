@@ -30,6 +30,7 @@ public static class Setup
         services.AddTransient<ITokenProvider, TokenProvider>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ITransactionProvider, UnitOfWork>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IProductService, ProductService>();
         
@@ -192,6 +193,8 @@ public static class Setup
     
     public static async ValueTask UpdateDatabase(this IApplicationBuilder app)
     {
+        // in a real application you would apply migrations manually after reviewing them
+
         using var serviceScope =
             app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
         await using var context = serviceScope.ServiceProvider.GetService<DatabaseContext>();

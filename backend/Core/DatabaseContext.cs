@@ -31,6 +31,7 @@ public sealed class DatabaseContext(DbContextOptions<DatabaseContext> options) :
     {
         var activeRefreshToken = modelBuilder.Entity<ActiveRefreshToken>();
         activeRefreshToken.HasKey(a => a.Id);
+        // gives us nicely ordered v7 Guids
         activeRefreshToken.Property(a => a.Id).ValueGeneratedOnAdd();
         activeRefreshToken.HasIndex(a => a.UserId);
     }

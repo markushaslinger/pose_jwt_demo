@@ -11,14 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JwtDemo.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240528203041_Initial")]
+    [Migration("20250102145358_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.6");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("JwtDemo.Core.Auth.ActiveRefreshToken", b =>
                 {

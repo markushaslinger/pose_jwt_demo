@@ -1,10 +1,9 @@
-﻿using JwtDemo.Core.Users;
-using NodaTime;
+﻿using NodaTime;
 
 namespace JwtDemo.Core.Auth;
 
-// this would be much nicer as an owned entity in a JSON column, but we have
-// to wait for complex types being enabled for JSON (maybe EF 9, or 10)
+// This would be much nicer as an owned entity in a JSON column, but we have to wait for
+// complex type collections to be supported: https://github.com/dotnet/efcore/issues/31237
 public class ActiveRefreshToken
 {
     public Guid Id { get; set; }

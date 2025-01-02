@@ -1,4 +1,5 @@
-﻿using JwtDemo.Core.Auth;
+﻿using JwtDemo.Core;
+using JwtDemo.Core.Auth;
 using JwtDemo.Core.Products;
 using JwtDemo.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -9,14 +10,12 @@ namespace JwtDemo.Controllers;
 [ApiController]
 [Authorize(nameof(UserRole.User))]
 [Route("api/products")]
-public sealed class ProductController(IProductService productService) : ControllerBase
+public sealed class ProductController(IProductService productService, ITransactionProvider transaction) : ControllerBase
 {
-    private readonly IProductService _productService = productService;
-
     [HttpGet]
     public async ValueTask<ActionResult<IEnumerable<ProductDto>>> GetAll()
     {
-        var products = await _productService.GetAllProducts();
+        var products = await productService.GetAllProducts();
 
         return Ok(products.Select(ToDto));
     }
@@ -25,7 +24,7 @@ public sealed class ProductController(IProductService productService) : Controll
     [Route("{productId:int}")]
     public async ValueTask<ActionResult<ProductDto>> GetById([FromRoute] int productId)
     {
-        var productResult = await _productService.GetProductById(productId);
+        var productResult = await productService.GetProductById(productId);
 
         return productResult
             .Match<ActionResult<ProductDto>>(product => Ok(product),
@@ -35,14 +34,32 @@ public sealed class ProductController(IProductService productService) : Controll
     [HttpPatch]
     [Authorize(nameof(UserRole.Admin))]
     [Route("{productId:int}/price")]
-    public async ValueTask<IActionResult> UpdatePrice([FromRoute] int productId, [FromBody] ProductPriceUpdateRequest request)
+    public async ValueTask<IActionResult> UpdatePrice([FromRoute] int productId,
+                                                      [FromBody] ProductPriceUpdateRequest request)
     {
-        // for this demo, we don't care about validation
-        var updateResult = await _productService.UpdateProductPrice(productId, request.Price);
+        try
+        {
+            await transaction.BeginTransactionAsync();
 
-        return updateResult
-            .Match<IActionResult>(_ => NoContent(),
-                                  _ => NotFound());
+            // for this demo, we don't care about validation
+            var updateResult = await productService.UpdateProductPrice(productId, request.Price);
+
+            return await updateResult
+                .MatchAsync<IActionResult>(async _ =>
+                                           {
+                                               await transaction.CommitAsync();
+
+                                               return NoContent();
+                                           },
+                                           _ => ValueTask.FromResult<IActionResult>(NotFound()));
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            Console.WriteLine(ex.Message);
+
+            return Problem();
+        }
     }
 
     private static ProductDto ToDto(Product product) =>

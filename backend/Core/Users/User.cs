@@ -12,5 +12,5 @@ public class User
     
     // storing those in something like a HybridCache (maybe ValKey backed) with automatic eviction would be a good idea
     // but to keep things simple, we'll just store them in the database
-    public required List<ActiveRefreshToken> ActiveRefreshTokens { get; set; }
+    public required List<ActiveRefreshToken> ActiveRefreshTokens { get; set; } = [];
 }

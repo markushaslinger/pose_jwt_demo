@@ -13,7 +13,7 @@ namespace JwtDemo.Core.Auth;
 
 public interface ITokenProvider
 {
-    NewToken CreateToken(User user);
+    public NewToken CreateToken(User user);
 
     public sealed record TokenData(string Token, TokenType Type, Instant Expiration);
 
@@ -54,9 +54,9 @@ internal sealed class TokenProvider(IOptions<AuthSettings> options, IClock clock
 
         IEnumerable<Claim> claims =
         [
-            new Claim(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Name, user.Username),
             ..roleClaims[user.Role],
-            new Claim(ClaimTypes.SerialNumber, Guid.NewGuid().ToString("N"))
+            new(ClaimTypes.SerialNumber, Guid.NewGuid().ToString("N"))
         ];
 
         var descriptor = new SecurityTokenDescriptor
